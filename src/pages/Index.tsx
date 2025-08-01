@@ -1,11 +1,11 @@
 import FileUploader from '@/components/FileUploader';
 import { useState, useEffect } from 'react';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
 
+// TODO: Замените на ваш реальный n8n webhook URL
+const WEBHOOK_URL = 'https://your-n8n-instance.com/webhook/your-webhook-id';
+
 const Index = () => {
-  const [webhookUrl, setWebhookUrl] = useState('');
   const [urlParams, setUrlParams] = useState({ chat_id: '', timestamp: '' });
 
   useEffect(() => {
@@ -44,26 +44,8 @@ const Index = () => {
             </div>
           </Card>
         )}
-
-        {/* Поле для ввода webhook URL */}
-        <Card className="max-w-2xl mx-auto p-6 mb-6">
-          <div className="space-y-2">
-            <Label htmlFor="webhook-url">n8n Webhook URL</Label>
-            <Input
-              id="webhook-url"
-              type="url"
-              placeholder="https://your-n8n-instance.com/webhook/..."
-              value={webhookUrl}
-              onChange={(e) => setWebhookUrl(e.target.value)}
-              className="w-full"
-            />
-            <p className="text-sm text-muted-foreground">
-              Введите URL вашего n8n webhook для загрузки файлов
-            </p>
-          </div>
-        </Card>
         
-        <FileUploader onFileSelect={handleFileSelect} webhookUrl={webhookUrl} />
+        <FileUploader onFileSelect={handleFileSelect} webhookUrl={WEBHOOK_URL} />
       </div>
     </div>
   );
