@@ -9,7 +9,7 @@ interface FileUploaderProps {
 }
 
 const ALLOWED_EXTENSIONS = ['pdf', 'tiff', 'tif', 'jpeg', 'jpg', 'png'];
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const MAX_FILE_SIZE = 200 * 1024 * 1024; // 200MB
 
 export const FileUploader: React.FC<FileUploaderProps> = ({ onFileSelect }) => {
   const [isDragOver, setIsDragOver] = useState(false);
@@ -33,7 +33,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({ onFileSelect }) => {
     if (file.size > MAX_FILE_SIZE) {
       toast({
         title: "Файл слишком большой",
-        description: "Максимальный размер файла: 10MB",
+        description: "Максимальный размер файла: 200MB",
         variant: "destructive",
       });
       return false;
@@ -165,7 +165,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({ onFileSelect }) => {
           </p>
           
           <p className="text-sm text-muted-foreground">
-            Поддерживаемые форматы: PDF, TIFF, JPEG, PNG (до 10MB)
+            Поддерживаемые форматы: PDF, TIFF, JPEG, PNG (до 200MB)
           </p>
         </div>
       </Card>
