@@ -6,12 +6,21 @@ import { useToast } from '@/hooks/use-toast';
 
 interface FileUploaderProps {
   onFileSelect: (file: File) => void;
+  webhookUrl: string;
 }
 
 const ALLOWED_EXTENSIONS = ['pdf', 'tiff', 'tif', 'jpeg', 'jpg', 'png'];
+const ALLOWED_MIME_TYPES = [
+  'application/pdf',
+  'image/tiff', 
+  'image/tif',
+  'image/jpeg', 
+  'image/jpg', 
+  'image/png'
+];
 const MAX_FILE_SIZE = 200 * 1024 * 1024; // 200MB
 
-export const FileUploader: React.FC<FileUploaderProps> = ({ onFileSelect }) => {
+export const FileUploader: React.FC<FileUploaderProps> = ({ onFileSelect, webhookUrl }) => {
   const [isDragOver, setIsDragOver] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -21,6 +30,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({ onFileSelect }) => {
   const validateFile = (file: File): boolean => {
     const extension = file.name.split('.').pop()?.toLowerCase();
     
+    // Проверка расширения файла
     if (!extension || !ALLOWED_EXTENSIONS.includes(extension)) {
       toast({
         title: "Неподдерживаемый формат файла",
@@ -30,6 +40,17 @@ export const FileUploader: React.FC<FileUploaderProps> = ({ onFileSelect }) => {
       return false;
     }
 
+    // Проверка MIME-типа
+    if (!ALLOWED_MIME_TYPES.includes(file.type)) {
+      toast({
+        title: "Неподдерживаемый тип файла",
+        description: "Файл не соответствует допустимому MIME-типу",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    // Проверка размера файла
     if (file.size > MAX_FILE_SIZE) {
       toast({
         title: "Файл слишком большой",
@@ -92,27 +113,49 @@ export const FileUploader: React.FC<FileUploaderProps> = ({ onFileSelect }) => {
   };
 
   const handleUpload = async () => {
-    if (!selectedFile) return;
+    if (!selectedFile || !webhookUrl) return;
     
     setIsUploading(true);
+    
     try {
-      // Имитация загрузки файла
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Получаем URL параметры
+      const urlParams = new URLSearchParams(window.location.search);
+      const chatId = urlParams.get('chat_id');
+      const timestamp = urlParams.get('timestamp');
       
-      toast({
-        title: "Файл успешно загружен",
-        description: `${selectedFile.name} обрабатывается`,
+      // Создаем FormData для отправки файла
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+      
+      // Добавляем параметры пользователя
+      if (chatId) formData.append('chat_id', chatId);
+      if (timestamp) formData.append('timestamp', timestamp);
+      
+      // Отправляем POST запрос на n8n webhook
+      const response = await fetch(webhookUrl, {
+        method: 'POST',
+        body: formData,
       });
       
-      // Сброс состояния после успешной загрузки
-      setSelectedFile(null);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+      if (response.ok) {
+        toast({
+          title: "Файл успешно загружен",
+          description: `${selectedFile.name} отправлен на обработку`,
+        });
+        
+        // Сброс состояния после успешной загрузки
+        setSelectedFile(null);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+      } else {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
     } catch (error) {
+      console.error('Ошибка загрузки файла:', error);
       toast({
         title: "Ошибка загрузки",
-        description: "Попробуйте еще раз",
+        description: error instanceof Error ? error.message : "Попробуйте еще раз",
         variant: "destructive",
       });
     } finally {
