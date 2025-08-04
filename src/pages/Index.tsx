@@ -2,8 +2,7 @@ import FileUploader from '@/components/FileUploader';
 import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 
-// TODO: Замените на ваш реальный n8n webhook URL
-const WEBHOOK_URL = 'https://your-n8n-instance.com/webhook/your-webhook-id';
+const WEBHOOK_URL = 'https://n8n.mdmprint.online/webhook/6a64b230-5b0c-46ad-b4d0-8830cbd95cc4';
 
 const Index = () => {
   const [urlParams, setUrlParams] = useState({ chat_id: '', timestamp: '' });
