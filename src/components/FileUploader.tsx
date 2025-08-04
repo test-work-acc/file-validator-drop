@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Upload, FileText, X, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 
 interface FileUploaderProps {
@@ -24,6 +25,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({ onFileSelect, webhoo
   const [isDragOver, setIsDragOver] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -116,6 +118,15 @@ export const FileUploader: React.FC<FileUploaderProps> = ({ onFileSelect, webhoo
     if (!selectedFile || !webhookUrl) return;
     
     setIsUploading(true);
+    setUploadProgress(0);
+    
+    // Симуляция прогресса загрузки
+    const progressInterval = setInterval(() => {
+      setUploadProgress(prev => {
+        if (prev >= 90) return prev;
+        return prev + Math.random() * 15;
+      });
+    }, 200);
     
     try {
       // Получаем URL параметры
@@ -137,6 +148,10 @@ export const FileUploader: React.FC<FileUploaderProps> = ({ onFileSelect, webhoo
         body: formData,
       });
       
+      // Завершаем прогресс
+      clearInterval(progressInterval);
+      setUploadProgress(100);
+      
       if (response.ok) {
         toast({
           title: "Файл успешно загружен",
@@ -144,14 +159,19 @@ export const FileUploader: React.FC<FileUploaderProps> = ({ onFileSelect, webhoo
         });
         
         // Сброс состояния после успешной загрузки
-        setSelectedFile(null);
-        if (fileInputRef.current) {
-          fileInputRef.current.value = '';
-        }
+        setTimeout(() => {
+          setSelectedFile(null);
+          setUploadProgress(0);
+          if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+          }
+        }, 1000);
       } else {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
     } catch (error) {
+      clearInterval(progressInterval);
+      setUploadProgress(0);
       console.error('Ошибка загрузки файла:', error);
       toast({
         title: "Ошибка загрузки",
@@ -244,14 +264,35 @@ export const FileUploader: React.FC<FileUploaderProps> = ({ onFileSelect, webhoo
       )}
 
       {selectedFile && (
-        <div className="flex justify-center">
-          <Button
-            onClick={handleUpload}
-            disabled={isUploading}
-            className="px-8 py-3 bg-gradient-to-r from-primary to-primary-glow hover:shadow-lg transition-all duration-300"
-          >
-            {isUploading ? 'Загружаем...' : 'Отправить на проверку'}
-          </Button>
+        <div className="space-y-4">
+          {isUploading && (
+            <Card className="p-4 bg-card border border-border">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-foreground">
+                    Загрузка файла...
+                  </span>
+                  <span className="text-sm text-muted-foreground">
+                    {Math.round(uploadProgress)}%
+                  </span>
+                </div>
+                <Progress value={uploadProgress} className="h-2" />
+                <p className="text-xs text-muted-foreground">
+                  {selectedFile.name}
+                </p>
+              </div>
+            </Card>
+          )}
+          
+          <div className="flex justify-center">
+            <Button
+              onClick={handleUpload}
+              disabled={isUploading}
+              className="px-8 py-3 bg-gradient-to-r from-primary to-primary-glow hover:shadow-lg transition-all duration-300"
+            >
+              {isUploading ? 'Загружаем...' : 'Отправить на проверку'}
+            </Button>
+          </div>
         </div>
       )}
     </div>
