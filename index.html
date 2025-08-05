@@ -1,24 +1,605 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>file-validator-drop</title>
-    <meta name="description" content="Lovable Generated Project" />
-    <meta name="author" content="Lovable" />
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Загрузка файлов для проверки</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    <meta property="og:title" content="file-validator-drop" />
-    <meta property="og:description" content="Lovable Generated Project" />
-    <meta property="og:type" content="website" />
-    <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
 
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@lovable_dev" />
-    <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
-  </head>
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
 
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 16px;
+            background: linear-gradient(45deg, #fff, #e0e7ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            font-size: 1.125rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .user-info {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            display: none;
+        }
+
+        .user-info h3 {
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 8px;
+            opacity: 0.8;
+        }
+
+        .user-info p {
+            font-size: 0.875rem;
+            margin: 4px 0;
+        }
+
+        .upload-zone {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 2px dashed #d1d5db;
+            border-radius: 12px;
+            padding: 60px 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 30px;
+        }
+
+        .upload-zone:hover {
+            border-color: #667eea;
+            background: rgba(255, 255, 255, 1);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .upload-zone.drag-over {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 20px;
+            background: #667eea;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .upload-zone:hover .upload-icon {
+            background: #5a67d8;
+            transform: scale(1.1);
+        }
+
+        .upload-zone.drag-over .upload-icon {
+            background: #667eea;
+            transform: scale(1.2);
+        }
+
+        .upload-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        .upload-subtitle {
+            color: #6b7280;
+            margin-bottom: 16px;
+        }
+
+        .upload-subtitle .highlight {
+            color: #667eea;
+            font-weight: 500;
+        }
+
+        .upload-formats {
+            font-size: 0.875rem;
+            color: #9ca3af;
+        }
+
+        .file-info {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            display: none;
+        }
+
+        .file-details {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .file-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .file-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #667eea;
+        }
+
+        .file-name {
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 4px;
+        }
+
+        .file-size {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        .file-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .check-icon {
+            color: #10b981;
+        }
+
+        .remove-btn {
+            background: none;
+            border: none;
+            color: #6b7280;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            transition: color 0.2s;
+        }
+
+        .remove-btn:hover {
+            color: #ef4444;
+        }
+
+        .progress-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            display: none;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .progress-text {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #374151;
+        }
+
+        .progress-percent {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        .progress-filename {
+            font-size: 0.75rem;
+            color: #6b7280;
+        }
+
+        .upload-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            display: block;
+            margin: 0 auto;
+        }
+
+        .upload-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+        }
+
+        .upload-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #10b981;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            max-width: 400px;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast.error {
+            border-left-color: #ef4444;
+        }
+
+        .toast-title {
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 4px;
+        }
+
+        .toast-message {
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+
+        #fileInput {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Загрузите файл для проверки</h1>
+            <p>Выберите документ в формате PDF, TIFF, JPEG или PNG для анализа и проверки</p>
+        </div>
+
+        <div id="userInfo" class="user-info">
+            <h3>Информация пользователя:</h3>
+            <div id="userDetails"></div>
+        </div>
+
+        <div id="uploadZone" class="upload-zone">
+            <div class="upload-icon">
+                <svg width="32" height="32" fill="white" viewBox="0 0 24 24">
+                    <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z" />
+                </svg>
+            </div>
+            <h3 class="upload-title">Перетащите файл сюда</h3>
+            <p class="upload-subtitle">или <span class="highlight">выберите файл</span> с компьютера</p>
+            <p class="upload-formats">Поддерживаемые форматы: PDF, TIFF, JPEG, PNG (до 200MB)</p>
+            <input type="file" id="fileInput" accept=".pdf,.tiff,.tif,.jpeg,.jpg,.png">
+        </div>
+
+        <div id="fileInfo" class="file-info">
+            <div class="file-details">
+                <div class="file-left">
+                    <div class="file-icon">
+                        <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="file-name" id="fileName"></div>
+                        <div class="file-size" id="fileSize"></div>
+                    </div>
+                </div>
+                <div class="file-actions">
+                    <svg class="check-icon" width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 2C6.5 2 2 6.5 2 12S6.5 22 12 22 22 17.5 22 12 17.5 2 12 2M10 17L5 12L6.41 10.59L10 14.17L17.59 6.58L19 8L10 17Z" />
+                    </svg>
+                    <button class="remove-btn" id="removeBtn">
+                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="progressContainer" class="progress-container">
+            <div class="progress-header">
+                <span class="progress-text">Загрузка файла...</span>
+                <span class="progress-percent" id="progressPercent">0%</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <p class="progress-filename" id="progressFilename"></p>
+        </div>
+
+        <button id="uploadBtn" class="upload-btn hidden">Отправить на проверку</button>
+    </div>
+
+    <script>
+        const WEBHOOK_URL = 'https://n8n.mdmprint.online/webhook/6a64b230-5b0c-46ad-b4d0-8830cbd95cc4';
+        const ALLOWED_EXTENSIONS = ['pdf', 'tiff', 'tif', 'jpeg', 'jpg', 'png'];
+        const ALLOWED_MIME_TYPES = [
+            'application/pdf',
+            'image/tiff', 
+            'image/tif',
+            'image/jpeg', 
+            'image/jpg', 
+            'image/png'
+        ];
+        const MAX_FILE_SIZE = 200 * 1024 * 1024; // 200MB
+
+        let selectedFile = null;
+        let isUploading = false;
+        let urlParams = { chat_id: '', timestamp: '' };
+
+        // DOM элементы
+        const uploadZone = document.getElementById('uploadZone');
+        const fileInput = document.getElementById('fileInput');
+        const fileInfo = document.getElementById('fileInfo');
+        const fileName = document.getElementById('fileName');
+        const fileSize = document.getElementById('fileSize');
+        const removeBtn = document.getElementById('removeBtn');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressFill = document.getElementById('progressFill');
+        const progressPercent = document.getElementById('progressPercent');
+        const progressFilename = document.getElementById('progressFilename');
+        const userInfo = document.getElementById('userInfo');
+        const userDetails = document.getElementById('userDetails');
+
+        // Инициализация
+        function init() {
+            // Получаем параметры из URL
+            const searchParams = new URLSearchParams(window.location.search);
+            urlParams.chat_id = searchParams.get('chat_id') || '';
+            urlParams.timestamp = searchParams.get('timestamp') || '';
+
+            // Показываем информацию о пользователе, если есть параметры
+            if (urlParams.chat_id || urlParams.timestamp) {
+                let html = '';
+                if (urlParams.chat_id) html += `<p>Chat ID: ${urlParams.chat_id}</p>`;
+                if (urlParams.timestamp) html += `<p>Timestamp: ${urlParams.timestamp}</p>`;
+                userDetails.innerHTML = html;
+                userInfo.style.display = 'block';
+            }
+
+            // Обработчики событий
+            uploadZone.addEventListener('click', () => fileInput.click());
+            uploadZone.addEventListener('dragover', handleDragOver);
+            uploadZone.addEventListener('dragleave', handleDragLeave);
+            uploadZone.addEventListener('drop', handleDrop);
+            fileInput.addEventListener('change', handleFileInputChange);
+            removeBtn.addEventListener('click', handleRemoveFile);
+            uploadBtn.addEventListener('click', handleUpload);
+        }
+
+        // Валидация файла
+        function validateFile(file) {
+            const extension = file.name.split('.').pop()?.toLowerCase();
+            
+            if (!extension || !ALLOWED_EXTENSIONS.includes(extension)) {
+                showToast('Неподдерживаемый формат файла', `Разрешены только файлы: ${ALLOWED_EXTENSIONS.join(', ').toUpperCase()}`, 'error');
+                return false;
+            }
+
+            if (!ALLOWED_MIME_TYPES.includes(file.type)) {
+                showToast('Неподдерживаемый тип файла', 'Файл не соответствует допустимому MIME-типу', 'error');
+                return false;
+            }
+
+            if (file.size > MAX_FILE_SIZE) {
+                showToast('Файл слишком большой', 'Максимальный размер файла: 200MB', 'error');
+                return false;
+            }
+
+            return true;
+        }
+
+        // Обработка выбора файла
+        function handleFileSelect(file) {
+            if (validateFile(file)) {
+                selectedFile = file;
+                fileName.textContent = file.name;
+                fileSize.textContent = `${(file.size / 1024 / 1024).toFixed(2)} MB`;
+                fileInfo.style.display = 'block';
+                uploadBtn.classList.remove('hidden');
+                showToast('Файл загружен', `${file.name} готов к отправке`);
+            }
+        }
+
+        // Drag & Drop обработчики
+        function handleDragOver(e) {
+            e.preventDefault();
+            uploadZone.classList.add('drag-over');
+        }
+
+        function handleDragLeave(e) {
+            e.preventDefault();
+            uploadZone.classList.remove('drag-over');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            uploadZone.classList.remove('drag-over');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFileSelect(files[0]);
+            }
+        }
+
+        function handleFileInputChange(e) {
+            const files = e.target.files;
+            if (files && files.length > 0) {
+                handleFileSelect(files[0]);
+            }
+        }
+
+        // Удаление файла
+        function handleRemoveFile() {
+            selectedFile = null;
+            fileInfo.style.display = 'none';
+            uploadBtn.classList.add('hidden');
+            fileInput.value = '';
+        }
+
+        // Загрузка файла
+        async function handleUpload() {
+            if (!selectedFile || !WEBHOOK_URL || isUploading) return;
+            
+            isUploading = true;
+            uploadBtn.disabled = true;
+            progressContainer.style.display = 'block';
+            progressFilename.textContent = selectedFile.name;
+            
+            // Симуляция прогресса
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                progress += Math.random() * 15;
+                if (progress > 90) progress = 90;
+                updateProgress(progress);
+            }, 200);
+            
+            try {
+                const formData = new FormData();
+                formData.append('file', selectedFile);
+                
+                if (urlParams.chat_id) formData.append('chat_id', urlParams.chat_id);
+                if (urlParams.timestamp) formData.append('timestamp', urlParams.timestamp);
+                
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    body: formData,
+                });
+                
+                clearInterval(progressInterval);
+                updateProgress(100);
+                
+                if (response.ok) {
+                    showToast('Файл успешно загружен', `${selectedFile.name} отправлен на обработку`);
+                    
+                    setTimeout(() => {
+                        handleRemoveFile();
+                        progressContainer.style.display = 'none';
+                        updateProgress(0);
+                    }, 1000);
+                } else {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+            } catch (error) {
+                clearInterval(progressInterval);
+                updateProgress(0);
+                console.error('Ошибка загрузки файла:', error);
+                showToast('Ошибка загрузки', error.message || 'Попробуйте еще раз', 'error');
+                progressContainer.style.display = 'none';
+            } finally {
+                isUploading = false;
+                uploadBtn.disabled = false;
+            }
+        }
+
+        // Обновление прогресса
+        function updateProgress(value) {
+            progressFill.style.width = `${value}%`;
+            progressPercent.textContent = `${Math.round(value)}%`;
+        }
+
+        // Показ уведомлений
+        function showToast(title, message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type === 'error' ? 'error' : ''}`;
+            toast.innerHTML = `
+                <div class="toast-title">${title}</div>
+                <div class="toast-message">${message}</div>
+            `;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => toast.classList.add('show'), 100);
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => document.body.removeChild(toast), 300);
+            }, 300);
+        }
+
+        // Запуск приложения
+        init();
+    </script>
+</body>
 </html>
